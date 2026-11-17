@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TuneMaster ID - Kalkulator CC Motor</title>
+<style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #121212; color: #e0e0e0; margin: 0; padding: 20px; display: flex; justify-content: center; }
+    .container { background-color: #1e1e1e; width: 100%; max-width: 450px; padding: 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
+    
+    h1 { font-size: 22px; color: #fff; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 25px; }
+    
+    .section-title { font-size: 15px; font-weight: bold; color: #4CAF50; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+    
+    .input-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; color: #bbb; margin-bottom: 6px; }
+    select, input {
+        width: 100%; padding: 12px; background-color: #2a2a2a; border: 1px solid #444;
+        color: #fff; border-radius: 8px; font-size: 15px; outline: none; transition: 0.2s;
+    }
+    select:focus, input:focus { border-color: #4CAF50; }
+    
+    .result-card { background: linear-gradient(145deg, #2a2a2a, #222); padding: 20px; border-radius: 12px; text-align: center; margin-top: 25px; border: 1px solid #444; }
+    .result-card h2 { margin: 0; font-size: 40px; color: #4CAF50; font-weight: bold; }
+    .result-card p { margin: 5px 0 0; font-size: 14px; color: #aaa; }
+    
+    .info-box { background-color: #252525; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px; color: #ccc; border-left: 4px solid #2196F3; }
+    .info-box strong { color: #fff; }
+    .ratio-val { font-size: 18px; color: #fff; font-weight: bold; display: block; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Kalkulator Kapasitas Mesin (CC)</h1>
+    <p class="subtitle">Hitung kapasitas silinder berdasarkan bore dan stroke.</p>
+
+    <div class="section-title">Parameter Silinder</div>
+    
+    <div class="input-group">
+        <label>Pilih Motor (Opsional)</label>
+        <select id="motorSelect" onchange="setMotor()">
+            <option value="">-- Pilih Motor --</option>
+            <option value="57,58.7">Yamaha MX King 150 / R15 V3 (149.8 cc)</option>
+            <option value="50,55">Honda BeAT / Vario 110 (107.9 cc)</option>
+            <option value="52.4,57.9">Honda Vario 125 (124.9 cc)</option>
+            <option value="57.3,57.9">Honda Vario 160 / PCX 160 (156.9 cc)</option>
+            <option value="62,48.8">Yamaha NMAX / Aerox 155 (155 cc)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>Diameter Piston / Bore (mm)</label>
+        <input type="number" id="bore" placeholder="Contoh: 57" step="0.1" value="57" oninput="hitung()">
+    </div>
+
+    <div class="input-group">
+        <label>Langkah Piston / Stroke (mm)</label>
+        <input type="number" id="stroke" placeholder="Contoh: 58.7" step="0.1" value="58.7" oninput="hitung()">
+    </div>
+
+    <div class="result-card">
+        <p>Kapasitas Silinder Mesin</p>
+        <h2 id="hasilCC">149.8</h2>
+        <p>cc</p>
+    </div>
+
+    <div class="info-box">
+        <strong>Rasio Bore / Stroke:</strong>
+        <span class="ratio-val" id="hasilRasio">0.971 : 1</span>
+        <span id="statusMesin">Square Engine</span>
+    </div>
+    
+    <div class="info-box" style="border-left-color: #FF9800;">
+        <strong>Luas Piston:</strong> <span id="luasPiston">2551.76 mm²</span>
+    </div>
+</div>
+
+<script>
+    function setMotor() {
+        var val = document.getElementById('motorSelect').value;
+        if(val !== "") {
+            var parts = val.split(',');
+            document.getElementById('bore').value = parts[0];
+            document.getElementById('stroke').value = parts[1];
+            hitung();
+        }
+    }
+
+    function hitung() {
+        var bore = parseFloat(document.getElementById('bore').value);
+        var stroke = parseFloat(document.getElementById('stroke').value);
+
+        if (bore > 0 && stroke > 0) {
+            // Rumus CC: π × (r)² × stroke / 1000
+            var r = bore / 2;
+            var cc = (Math.PI * r * r * stroke) / 1000;
+            
+            // Tampilkan CC
+            document.getElementById('hasilCC').innerText = cc.toFixed(2);
+            
+            // Hitung Rasio
+            var rasio = bore / stroke;
+            document.getElementById('hasilRasio').innerText = rasio.toFixed(3) + " : 1";
+            
+            // Hitung Luas Piston
+            var luas = Math.PI * r * r;
+            document.getElementById('luasPiston').innerText = luas.toFixed(2) + " mm²";
+
+            // Tentukan Status Mesin
+            var status = "";
+            if (rasio > 1.05) status = "Oversquare (Tenaga Atas)";
+            else if (rasio < 0.95) status = "Undersquare (Tenaga Bawah)";
+            else status = "Square Engine (Tenaga Merata)";
+            document.getElementById('statusMesin').innerText = status;
+        }
+    }
+
+    // Jalankan saat pertama kali dibuka
+    hitung();
+</script>
+
+</body>
+</html>
